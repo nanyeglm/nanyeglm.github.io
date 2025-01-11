@@ -1,0 +1,375 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>WSL系统完整备份及迁移教程 | 高利明的博客</title><meta name="author" content="高利明"><meta name="copyright" content="高利明"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文详细介绍了如何对WSL(Ubuntu)系统进行完整备份，以及如何将备份迁移到其他电脑上的方法，包括导出、导入、迁移等完整操作步骤。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WSL系统完整备份及迁移教程">
+<meta property="og:url" content="http://example.com/posts/433b4ea0.html">
+<meta property="og:site_name" content="高利明的博客">
+<meta property="og:description" content="本文详细介绍了如何对WSL(Ubuntu)系统进行完整备份，以及如何将备份迁移到其他电脑上的方法，包括导出、导入、迁移等完整操作步骤。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/avatar.webp">
+<meta property="article:published_time" content="2024-01-02T05:30:00.000Z">
+<meta property="article:modified_time" content="2025-01-02T05:30:00.000Z">
+<meta property="article:author" content="高利明">
+<meta property="article:tag" content="WSL">
+<meta property="article:tag" content="Ubuntu">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="系统备份">
+<meta property="article:tag" content="系统迁移">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/avatar.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/posts/433b4ea0.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//www.clarity.ms"><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="google-site-verification" content="OPIZkiHEFzMB0vxS2E3LmAwL6aARyJHunL5ioiP7Zdg"><meta name="baidu-site-verification" content="codeva-R340xvkTth"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "kq5g68ysoz");</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'WSL系统完整备份及迁移教程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><link rel="stylesheet" href="/css/transpancy.css"><link rel="stylesheet" href="/css/modify.css"><link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/images/wallhaven-exrqrr_3840x2160-final.webp);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/services/"><i class="fa-fw fas fa-globe"></i><span> 服务</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/main_cover.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">高利明的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">WSL系统完整备份及迁移教程</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/services/"><i class="fa-fw fas fa-globe"></i><span> 服务</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">WSL系统完整备份及迁移教程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-01-02T05:30:00.000Z" title="发表于 2024-01-02 13:30:00">2024-01-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-02T05:30:00.000Z" title="更新于 2025-01-02 13:30:00">2025-01-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/WSL/">WSL</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/WSL/Linux/">Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="twikoo_visitors"><i class="fa-solid fa-spinner fa-spin"></i></span></span><span class="post-meta-separator">|</span><span class="post-meta-commentcount"><i class="far fa-comments fa-fw post-meta-icon"></i><span class="post-meta-label">评论数:</span><a href="/posts/433b4ea0.html#post-comment"><span id="twikoo-count"><i class="fa-solid fa-spinner fa-spin"></i></span></a></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><div class="top-img" style="background-image: url(/images/main_cover.jpg);"></div><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;自该文章上次更新已经过去&quot;,&quot;messageNext&quot;:&quot;天，文章中的某些信息可能已经过时。&quot;,&quot;postUpdate&quot;:&quot;2025-01-02 13:30:00&quot;}" hidden=""></div><h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><h3 id="1-什么是-WSL"><a href="#1-什么是-WSL" class="headerlink" title="1. 什么是 WSL"></a>1. 什么是 WSL</h3><p><strong>WSL（Windows Subsystem for Linux）</strong> 是微软在 Windows 10 及后续版本提供的一项功能，它允许用户在 Windows 系统上直接运行 Linux 环境，而无需使用传统的虚拟机软件（如 VirtualBox、VMware 等）。WSL 提供了与真实 Linux 环境几乎一致的命令行工具、文件系统以及网络环境，极大地提升了在 Windows 平台下进行 Linux 开发和运维的便利性。</p>
+<h3 id="2-为什么要打包迁移-WSL"><a href="#2-为什么要打包迁移-WSL" class="headerlink" title="2. 为什么要打包迁移 WSL"></a>2. 为什么要打包迁移 WSL</h3><p>在日常开发或运维的过程中，我们可能已经在本地的 WSL 上安装了各种软件、环境依赖、配置文件等，并完成了大量的定制化。如果我们想在另一台电脑上重现相同的开发环境，最省时省力的方法就是<strong>打包备份</strong>现有的 WSL，然后<strong>在新的机器上导入</strong>它。这样可以一次性迁移所有环境依赖和数据，而不需要在新电脑上重新安装所有软件、重新进行配置。</p>
+<h3 id="3-教程适用范围"><a href="#3-教程适用范围" class="headerlink" title="3. 教程适用范围"></a>3. 教程适用范围</h3><ul>
+<li>本教程适用于安装了 WSL 2 的 Windows 10、Windows 11 等系统（理论上也兼容 WSL 1，但命令上有一些差别，本教程主要针对 WSL 2）。</li>
+<li>已经在原电脑中安装并运行了 <code>Ubuntu-22.04</code> 或其他版本的 Linux 子系统。</li>
+<li>想要在另一台 Windows 电脑上导入相同的 Linux 子系统，包括所有数据与配置。</li>
+</ul>
+<hr>
+<h2 id="二、基础准备"><a href="#二、基础准备" class="headerlink" title="二、基础准备"></a>二、基础准备</h2><h3 id="1-检查-WSL-版本与已安装的-Linux-发行版"><a href="#1-检查-WSL-版本与已安装的-Linux-发行版" class="headerlink" title="1. 检查 WSL 版本与已安装的 Linux 发行版"></a>1. 检查 WSL 版本与已安装的 Linux 发行版</h3><p>打开 <strong>PowerShell</strong> 或 <strong>Windows Terminal</strong>，输入以下命令来查看已经安装的 WSL 发行版及其版本信息：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--list</span> <span class="literal">--verbose</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>这条命令的含义如下：</p>
+<ul>
+<li><code>wsl</code> 是 Windows Subsystem for Linux 的命令行工具。</li>
+<li><code>--list</code>（或简写 <code>-l</code>）是列出已安装的所有 Linux 发行版。</li>
+<li><code>--verbose</code>（或简写 <code>-v</code>）会提供更详细的状态和版本信息。</li>
+</ul>
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-22.04    Running         2</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li><strong>NAME</strong>：表示发行版的名称，这里是 <code>Ubuntu-22.04</code>。</li>
+<li><strong>STATE</strong>：表示当前 WSL 发行版的状态，这里是 <code>Running</code>。</li>
+<li><strong>VERSION</strong>：表示 WSL 的版本号，这里是 <code>2</code>。</li>
+</ul>
+<h3 id="2-确保没有正在使用-WSL-的重要进程"><a href="#2-确保没有正在使用-WSL-的重要进程" class="headerlink" title="2. 确保没有正在使用 WSL 的重要进程"></a>2. 确保没有正在使用 WSL 的重要进程</h3><p>在执行导出操作之前，为了避免文件占用或系统异常，<strong>最好先确保没有正在使用 WSL 的重要进程</strong>，如数据库、服务器进程等都已停止。可以在 Ubuntu 中通过 <code>ps -aux</code> 命令检查相关进程，也可以直接退出所有打开的 Linux 终端、Shell 窗口，以确保安全导出。</p>
+<h3 id="3-了解打包格式"><a href="#3-了解打包格式" class="headerlink" title="3. 了解打包格式"></a>3. 了解打包格式</h3><ul>
+<li>通过 WSL 自带的 <code>--export</code> 功能，我们可以将整个 Linux 发行版打包为一个 <code>.tar</code> 文件。</li>
+<li>这个 <code>.tar</code> 文件中包含了 Linux 发行版的根文件系统（包括 <code>/home</code>、<code>/etc</code> 等常见目录）以及与该发行版关联的元数据。</li>
+</ul>
+<hr>
+<h2 id="三、在原电脑上导出（备份）WSL"><a href="#三、在原电脑上导出（备份）WSL" class="headerlink" title="三、在原电脑上导出（备份）WSL"></a>三、在原电脑上导出（备份）WSL</h2><h3 id="1-导出命令"><a href="#1-导出命令" class="headerlink" title="1. 导出命令"></a>1. 导出命令</h3><p>在 PowerShell 窗口中，输入以下命令来导出（备份）对应的 WSL 发行版：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--export</span> &lt;发行版名称&gt; &lt;导出文件路径\文件名.tar&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>把命令拆分解释如下：</p>
+<ul>
+<li><code>wsl --export</code>：指定了我们要执行的操作是“导出”当前已经安装的某个发行版。</li>
+<li><code>&lt;发行版名称&gt;</code>：需要和前面 <code>wsl --list --verbose</code> 中的 <strong>NAME</strong> 字段完全一致，如 <code>Ubuntu-22.04</code>。</li>
+<li><code>&lt;导出文件路径\文件名.tar&gt;</code>：指定导出后的 <code>.tar</code> 文件的存放位置及文件名。例如可以写成： <code>D:\WSL_Backup\Ubuntu2204_Backup.tar</code>。</li>
+</ul>
+<p>实际使用示例：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--export</span> Ubuntu<span class="literal">-22</span>.<span class="number">04</span> D:\Backup\Ubuntu2204_backup.tar</span><br></pre></td></tr></tbody></table></figure>
+
+<p>此时，终端没有进一步的输出，但会占用一段时间。<strong>导出完成后</strong>，在 <code>D:\Backup</code> 文件夹下就可以看到一个 <code>Ubuntu2204_backup.tar</code> 文件，该文件的大小会根据你的 WSL 发行版中所安装的应用、文件量多少而定。</p>
+<h3 id="2-注意点"><a href="#2-注意点" class="headerlink" title="2. 注意点"></a>2. 注意点</h3><ol>
+<li><strong>文件路径</strong>：如果你想把 <code>.tar</code> 文件放到桌面或其他目录，需要使用 Windows 下的完整路径，如 <code>C:\Users\当前用户名\Desktop\WSL_Backup\Ubuntu.tar</code>。</li>
+<li><strong>空间足够</strong>：确保导出时的目标盘空间足够放下整个打包文件，否则可能出现导出失败或文件损坏。</li>
+</ol>
+<hr>
+<h2 id="四、在新电脑上准备-WSL-环境"><a href="#四、在新电脑上准备-WSL-环境" class="headerlink" title="四、在新电脑上准备 WSL 环境"></a>四、在新电脑上准备 WSL 环境</h2><p>在将打包文件拿到新电脑之前，我们需要确保新电脑也具备安装 WSL 并运行 Linux 发行版的基本条件。</p>
+<h3 id="1-启用-WSL-功能"><a href="#1-启用-WSL-功能" class="headerlink" title="1. 启用 WSL 功能"></a>1. 启用 WSL 功能</h3><p>在 Windows 10 或 Windows 11 上，可以通过以下方式启用 WSL（大部分新系统默认已经启用，但还是建议检查）：</p>
+<ul>
+<li><p><strong>方法 1</strong>：PowerShell 命令</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dism.exe /online /<span class="built_in">enable-feature</span> /featurename:Microsoft<span class="literal">-Windows-Subsystem-Linux</span> /all /norestart</span><br><span class="line">dism.exe /online /<span class="built_in">enable-feature</span> /featurename:VirtualMachinePlatform /all /norestart</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p><strong>方法 2</strong>：图形化打开</p>
+<ol>
+<li>打开“控制面板” - “程序” - “启用或关闭 Windows 功能”。</li>
+<li>勾选“适用于 Linux 的 Windows 子系统 (Windows Subsystem for Linux)”和“虚拟机平台 (Virtual Machine Platform)”。</li>
+<li>点击确定并重启电脑。</li>
+</ol>
+</li>
+</ul>
+<h3 id="2-安装-WSL-更新包（可选）"><a href="#2-安装-WSL-更新包（可选）" class="headerlink" title="2. 安装 WSL 更新包（可选）"></a>2. 安装 WSL 更新包（可选）</h3><p>如果新电脑是第一次安装 WSL，可以在 Microsoft Store 搜索 “WSL” 并进行一键安装，或者使用命令行安装：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--install</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>这会安装最新的 WSL 组件，以及默认的一些 Linux 发行版。安装完成后重启电脑即可。</p>
+<h3 id="3-检查-WSL-是否安装成功"><a href="#3-检查-WSL-是否安装成功" class="headerlink" title="3. 检查 WSL 是否安装成功"></a>3. 检查 WSL 是否安装成功</h3><p>安装或启用后，可以在 PowerShell 或 Windows Terminal 中再次输入：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--list</span> <span class="literal">--verbose</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果能够正常执行且没有报错，说明 WSL 已经安装并可用。</p>
+<hr>
+<h2 id="五、在新电脑上导入（还原）WSL"><a href="#五、在新电脑上导入（还原）WSL" class="headerlink" title="五、在新电脑上导入（还原）WSL"></a>五、在新电脑上导入（还原）WSL</h2><p>下面是新电脑的重点操作：将之前打包好的 <code>.tar</code> 文件放到新电脑上，然后使用 <code>wsl --import</code> 命令进行还原。</p>
+<h3 id="1-准备打包文件"><a href="#1-准备打包文件" class="headerlink" title="1. 准备打包文件"></a>1. 准备打包文件</h3><p>先将在旧电脑导出的 <code>Ubuntu2204_backup.tar</code> 文件复制到新电脑（可以使用 U 盘、网络共享、网盘等方式）。为了方便演示，假设我们放到了新电脑的 <code>D:\Backup</code> 目录下。</p>
+<h3 id="2-创建存放-WSL-的文件夹"><a href="#2-创建存放-WSL-的文件夹" class="headerlink" title="2. 创建存放 WSL 的文件夹"></a>2. 创建存放 WSL 的文件夹</h3><p>在新电脑上，需要创建一个空文件夹来存放还原后的 Linux 文件系统。此文件夹可以放在任意分区和路径下。举例：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">New-Item</span> <span class="literal">-Path</span> D:\WSL_Imported\Ubuntu2204 <span class="literal">-ItemType</span> Directory</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这会在 <code>D:\WSL_Imported</code> 目录下创建一个名为 <code>Ubuntu2204</code> 的文件夹，用于存放本次导入的 WSL 根文件系统。</p>
+<h3 id="3-导入命令"><a href="#3-导入命令" class="headerlink" title="3. 导入命令"></a>3. 导入命令</h3><p>在 <strong>PowerShell</strong> 或 <strong>Windows Terminal</strong> 中，执行导入命令：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--import</span> &lt;自定义发行版名称&gt; &lt;目标文件夹路径&gt; &lt;tar文件路径&gt; <span class="literal">--version</span> <span class="number">2</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>参数含义：</p>
+<ul>
+<li><code>&lt;自定义发行版名称&gt;</code>：在新电脑上，这个 WSL 发行版可以指定一个你喜欢的名称。例如 <code>MyUbuntu2204</code>、<code>Ubuntu22Imported</code> 等，只要不与系统中已有的发行版名称冲突即可。</li>
+<li><code>&lt;目标文件夹路径&gt;</code>：步骤 2 中新建的目录，用于存放 WSL 的根文件系统。</li>
+<li><code>&lt;tar文件路径&gt;</code>：之前复制到新电脑的 <code>.tar</code> 文件的完整路径。</li>
+<li><code>--version 2</code>：指定要使用 <strong>WSL 2</strong> 版本导入。</li>
+</ul>
+<p>实际使用示例：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--import</span> Ubuntu22Imported D:\WSL_Imported\Ubuntu2204 D:\Backup\Ubuntu2204_backup.tar <span class="literal">--version</span> <span class="number">2</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>执行后，会根据打包文件大小和系统性能，等待一段时间。如果一切顺利，命令执行完成后，并不会有特别明显的提示信息。我们可以用下面的命令来查看导入是否成功：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--list</span> <span class="literal">--verbose</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>输出示例（部分）：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">  NAME                   STATE           VERSION</span><br><span class="line">* Ubuntu22Imported       Stopped         2</span><br><span class="line">  ...</span><br></pre></td></tr></tbody></table></figure>
+
+<p>看到 <code>Ubuntu22Imported</code> 出现在列表里，且 <code>VERSION</code> 为 <code>2</code>，说明导入成功。</p>
+<h3 id="4-启动并使用新导入的发行版"><a href="#4-启动并使用新导入的发行版" class="headerlink" title="4. 启动并使用新导入的发行版"></a>4. 启动并使用新导入的发行版</h3><p>在新电脑上，我们可以直接输入以下命令来启动并进入对应发行版的 Shell：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">-d</span> Ubuntu22Imported</span><br></pre></td></tr></tbody></table></figure>
+
+<p>也可以通过 Windows Terminal 的下拉菜单（如果已集成）选择对应的发行版进入。<br>进入 Linux 终端后，就可以看到熟悉的环境、文件和安装的软件都已就绪。<strong>你在原电脑中所安装的包、配置文件、脚本等都会随之被完整迁移到新电脑上。</strong></p>
+<hr>
+<h2 id="六、常见问题与注意事项"><a href="#六、常见问题与注意事项" class="headerlink" title="六、常见问题与注意事项"></a>六、常见问题与注意事项</h2><ol>
+<li><p><strong>导出文件的大小</strong><br>如果你的 Ubuntu 发行版中安装了很多软件，或者存放了大量数据（比如 MySQL 数据库、项目文件等），则 <code>.tar</code> 文件可能会非常大。请确认你的磁盘空间够用，并尽可能清理不必要的缓存文件再导出。</p>
+<ul>
+<li>可以在 Linux 中使用 <code>sudo apt-get autoremove</code>、<code>sudo apt-get clean</code> 等命令，清理无用文件。</li>
+</ul>
+</li>
+<li><p><strong>环境变量与用户默认设置</strong><br>在新电脑导入后，默认以 <code>root</code> 用户启动。如果想要指定某个普通用户为默认登录账户，需要手动修改 WSL 中的 <code>/etc/wsl.conf</code> 或者通过官方命令设置默认用户：</p>
+<figure class="highlight powershell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ubuntu config <span class="literal">--default-user</span> &lt;你的用户名&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>（注意：这与发行版的名称或安装方式有关，如果是自定义名称，需要相应的命令工具支持，或手动在系统内部进行修改。）</p>
+</li>
+<li><p><strong>网络配置或代理设置</strong><br>如果在旧电脑上配置了代理、DNS 或其他网络相关设置，在新电脑环境可能会有所差异，需要根据新电脑的网络环境再进行相应配置修改。</p>
+</li>
+<li><p><strong>权限问题</strong><br>导入的发行版在文件权限和用户组方面与原来保持一致。如果在导出前使用过自定义的用户组或权限管理，需要在导入后确认这些权限仍可用。</p>
+<ul>
+<li>对于使用挂载 Windows 文件夹 (<code>/mnt/c</code>) 的场景，要注意 Windows 与 Linux 权限可能存在差异。</li>
+</ul>
+</li>
+<li><p><strong>Multiple WSL Instances（多次导入）</strong><br>如果你多次导入同一个 <code>.tar</code> 文件，每次都可以取一个不同的发行版名称（例如 <code>Ubuntu22Imported1</code>、<code>Ubuntu22Imported2</code> 等），它们会彼此独立存在。</p>
+<ul>
+<li>如果仅需一个环境，建议清理旧的无用发行版，可用 <code>wsl --unregister &lt;发行版名称&gt;</code> 来删除旧的实例，但这会<strong>不可恢复地</strong>删除其全部数据。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="七、总结"><a href="#七、总结" class="headerlink" title="七、总结"></a>七、总结</h2><p>通过以上步骤，我们已经实现了在 <strong>原电脑</strong> 上将 <code>Ubuntu-22.04</code> 发行版完整打包备份为一个 <code>.tar</code> 文件，并在 <strong>新电脑</strong> 上成功导入并使用。整个流程概括如下：</p>
+<ol>
+<li><p><strong>导出（Export）</strong></p>
+<ul>
+<li>打开 PowerShell</li>
+<li><code>wsl --export Ubuntu-22.04 D:\Backup\Ubuntu2204_backup.tar</code></li>
+<li>得到 <code>.tar</code> 文件</li>
+</ul>
+</li>
+<li><p><strong>在新电脑启用 WSL（若尚未启用）</strong></p>
+<ul>
+<li>启用“适用于 Linux 的 Windows 子系统”和“虚拟机平台”</li>
+<li>使用 <code>wsl --install</code> 安装必需组件</li>
+</ul>
+</li>
+<li><p><strong>导入（Import）</strong></p>
+<ul>
+<li>在新电脑创建存放目录，比如 <code>D:\WSL_Imported\Ubuntu2204</code></li>
+<li><code>wsl --import Ubuntu22Imported D:\WSL_Imported\Ubuntu2204 D:\Backup\Ubuntu2204_backup.tar --version 2</code></li>
+<li>通过 <code>wsl --list --verbose</code> 查看新导入的发行版</li>
+</ul>
+</li>
+<li><p><strong>启动使用</strong></p>
+<ul>
+<li><code>wsl -d Ubuntu22Imported</code></li>
+<li>进入后会发现所有原有软件、配置、数据均已完好保留。</li>
+</ul>
+</li>
+</ol>
+<p>到此，你就完成了完整的 WSL (Ubuntu) 备份与迁移流程。该方法同样适用于其他 WSL 发行版，如 <code>Debian</code>、<code>Alpine</code> 等，只要把对应的发行版名称换成实际名称即可。</p>
+<p>如果这篇教程对你有所帮助，欢迎在分享、收藏或留下评论。如果在迁移过程中遇到任何问题，也可尝试在评论区讨论或在官方文档中查找相应的解决方案。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">高利明</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/posts/433b4ea0.html">http://example.com/posts/433b4ea0.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">高利明的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/WSL/">WSL</a><a class="post-meta__tags" href="/tags/Ubuntu/">Ubuntu</a><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/%E7%B3%BB%E7%BB%9F%E5%A4%87%E4%BB%BD/">系统备份</a><a class="post-meta__tags" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%81%E7%A7%BB/">系统迁移</a></div><div class="post-share"><div class="social-share" data-image="/images/avatar.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/302bd293.html" title="压缩 WSL 的 VHDX 文件并释放磁盘空间"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">压缩 WSL 的 VHDX 文件并释放磁盘空间</div></div><div class="info-2"><div class="info-item-1">本文详细介绍了如何通过多个步骤压缩 WSL（Windows Subsystem for Linux）的 VHDX 文件，以释放 Windows 系统的磁盘空间。包括清理系统、创建零填充文件、使用 PowerShell 命令压缩等方法，帮助你有效管理 WSL 占用的磁盘空间。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/5272ce5.html" title="WSL中安装并启用中文字体"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-28</div><div class="info-item-2">WSL中安装并启用中文字体</div></div><div class="info-2"><div class="info-item-1">详细介绍在 WSL(Ubuntu) 中安装中文字体的两种方法：一种是直接使用 Windows 系统自带的中文字体，另一种是安装从网络下载的中文字体文件。包含完整的命令说明和步骤解释，帮助 WSL 用户解决中文字体显示问题。</div></div></div></a><a class="pagination-related" href="/posts/302bd293.html" title="压缩 WSL 的 VHDX 文件并释放磁盘空间"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-27</div><div class="info-item-2">压缩 WSL 的 VHDX 文件并释放磁盘空间</div></div><div class="info-2"><div class="info-item-1">本文详细介绍了如何通过多个步骤压缩 WSL（Windows Subsystem for Linux）的 VHDX 文件，以释放 Windows 系统的磁盘空间。包括清理系统、创建零填充文件、使用 PowerShell 命令压缩等方法，帮助你有效管理 WSL 占用的磁盘空间。</div></div></div></a><a class="pagination-related" href="/posts/25f44943.html" title="ubuntu中安装miniforge"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-28</div><div class="info-item-2">ubuntu中安装miniforge</div></div><div class="info-2"><div class="info-item-1">详细介绍在 Ubuntu 系统中安装 Miniforge 并配置 mamba 下载加速的完整过程。包括安装步骤、源配置、常用命令等内容，帮助用户搭建高效的 Python 开发环境。</div></div></div></a><a class="pagination-related" href="/posts/15ebe7ca.html" title="Ubuntu中彻底卸载Anaconda"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-28</div><div class="info-item-2">Ubuntu中彻底卸载Anaconda</div></div><div class="info-2"><div class="info-item-1">详细介绍如何在 Ubuntu 系统中完整卸载 Anaconda，包括删除安装目录、清理配置文件、环境变量和缓存等。同时提供验证方法和常见问题解决方案，帮助你彻底清理 Anaconda 相关组件。</div></div></div></a></div></div><hr class="custom-hr"><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info-name">高利明</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/nanyeglm"><i class="fab fa-github"></i><span>Follow Me on GitHub</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">2024.12.24: 博客上线评论功能，欢迎来聊天呀！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">一、前言</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-WSL"><span class="toc-number">1.1.</span> <span class="toc-text">1. 什么是 WSL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%89%93%E5%8C%85%E8%BF%81%E7%A7%BB-WSL"><span class="toc-number">1.2.</span> <span class="toc-text">2. 为什么要打包迁移 WSL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%95%99%E7%A8%8B%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4"><span class="toc-number">1.3.</span> <span class="toc-text">3. 教程适用范围</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%9F%BA%E7%A1%80%E5%87%86%E5%A4%87"><span class="toc-number">2.</span> <span class="toc-text">二、基础准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A3%80%E6%9F%A5-WSL-%E7%89%88%E6%9C%AC%E4%B8%8E%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84-Linux-%E5%8F%91%E8%A1%8C%E7%89%88"><span class="toc-number">2.1.</span> <span class="toc-text">1. 检查 WSL 版本与已安装的 Linux 发行版</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%A1%AE%E4%BF%9D%E6%B2%A1%E6%9C%89%E6%AD%A3%E5%9C%A8%E4%BD%BF%E7%94%A8-WSL-%E7%9A%84%E9%87%8D%E8%A6%81%E8%BF%9B%E7%A8%8B"><span class="toc-number">2.2.</span> <span class="toc-text">2. 确保没有正在使用 WSL 的重要进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BA%86%E8%A7%A3%E6%89%93%E5%8C%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">3. 了解打包格式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%9C%A8%E5%8E%9F%E7%94%B5%E8%84%91%E4%B8%8A%E5%AF%BC%E5%87%BA%EF%BC%88%E5%A4%87%E4%BB%BD%EF%BC%89WSL"><span class="toc-number">3.</span> <span class="toc-text">三、在原电脑上导出（备份）WSL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AF%BC%E5%87%BA%E5%91%BD%E4%BB%A4"><span class="toc-number">3.1.</span> <span class="toc-text">1. 导出命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="toc-number">3.2.</span> <span class="toc-text">2. 注意点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%9C%A8%E6%96%B0%E7%94%B5%E8%84%91%E4%B8%8A%E5%87%86%E5%A4%87-WSL-%E7%8E%AF%E5%A2%83"><span class="toc-number">4.</span> <span class="toc-text">四、在新电脑上准备 WSL 环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%90%AF%E7%94%A8-WSL-%E5%8A%9F%E8%83%BD"><span class="toc-number">4.1.</span> <span class="toc-text">1. 启用 WSL 功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%89%E8%A3%85-WSL-%E6%9B%B4%E6%96%B0%E5%8C%85%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">2. 安装 WSL 更新包（可选）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%A3%80%E6%9F%A5-WSL-%E6%98%AF%E5%90%A6%E5%AE%89%E8%A3%85%E6%88%90%E5%8A%9F"><span class="toc-number">4.3.</span> <span class="toc-text">3. 检查 WSL 是否安装成功</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9C%A8%E6%96%B0%E7%94%B5%E8%84%91%E4%B8%8A%E5%AF%BC%E5%85%A5%EF%BC%88%E8%BF%98%E5%8E%9F%EF%BC%89WSL"><span class="toc-number">5.</span> <span class="toc-text">五、在新电脑上导入（还原）WSL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%87%86%E5%A4%87%E6%89%93%E5%8C%85%E6%96%87%E4%BB%B6"><span class="toc-number">5.1.</span> <span class="toc-text">1. 准备打包文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%9B%E5%BB%BA%E5%AD%98%E6%94%BE-WSL-%E7%9A%84%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-number">5.2.</span> <span class="toc-text">2. 创建存放 WSL 的文件夹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E5%91%BD%E4%BB%A4"><span class="toc-number">5.3.</span> <span class="toc-text">3. 导入命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%90%AF%E5%8A%A8%E5%B9%B6%E4%BD%BF%E7%94%A8%E6%96%B0%E5%AF%BC%E5%85%A5%E7%9A%84%E5%8F%91%E8%A1%8C%E7%89%88"><span class="toc-number">5.4.</span> <span class="toc-text">4. 启动并使用新导入的发行版</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.</span> <span class="toc-text">六、常见问题与注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">七、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/438fca8b.html" title="VSCode中相对路径的获取逻辑及修改方法">VSCode中相对路径的获取逻辑及修改方法</a><time datetime="2024-12-30T03:21:00.000Z" title="发表于 2024-12-30 11:21:00">2024-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/667dce82.html" title="conda-pack打包conda虚拟环境">conda-pack打包conda虚拟环境</a><time datetime="2024-12-28T06:22:10.000Z" title="发表于 2024-12-28 14:22:10">2024-12-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/15ebe7ca.html" title="Ubuntu中彻底卸载Anaconda">Ubuntu中彻底卸载Anaconda</a><time datetime="2024-12-28T05:35:14.000Z" title="发表于 2024-12-28 13:35:14">2024-12-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/5272ce5.html" title="WSL中安装并启用中文字体">WSL中安装并启用中文字体</a><time datetime="2024-12-28T04:01:08.000Z" title="发表于 2024-12-28 12:01:08">2024-12-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/25f44943.html" title="ubuntu中安装miniforge">ubuntu中安装miniforge</a><time datetime="2024-12-28T04:00:16.000Z" title="发表于 2024-12-28 12:00:16">2024-12-28</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">©2023 - 2025 By 高利明</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备2022032772号-1</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"requiredFields":["nick"]}
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.gaoliming.top',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://twikoo.gaoliming.top',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    GLOBAL_CONFIG_SITE.isPost && getCount()
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
