@@ -301,18 +301,38 @@
 <li><code>-y</code>：自动确认提示。</li>
 </ul>
 </li>
+<li><p>激活环境：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate ./env</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>命令解释：</strong></p>
+<ul>
+<li><code>conda activate</code>：激活指定路径的 Conda 环境。</li>
+<li><code>./env</code>：环境的相对路径。</li>
+</ul>
+</li>
+<li><p>安装项目依赖：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install -r requirements.txt</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>命令解释：</strong></p>
+<ul>
+<li><code>pip install</code>：使用 pip 安装 Python 包。</li>
+<li><code>-r requirements.txt</code>：从 requirements.txt 文件读取并安装所有依赖。</li>
+</ul>
+</li>
 <li><p>验证环境：  </p>
-<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span></span><br><span class="line">conda info --envs</span><br><span class="line">pip list</span><br></pre></td></tr></tbody></table></figure>
 
 <p><strong>命令解释：</strong>  </p>
 <ul>
-<li><code>ls</code>：列出目录内容，应包含 <code>env/</code> 目录。</li>
+<li><code>ls</code>：列出目录内容，应包含 <code>env/</code> 目录。  </li>
+<li><code>conda info --envs</code>：显示当前激活的环境。</li>
+<li><code>pip list</code>：列出所有已安装的包。</li>
 </ul>
 </li>
 </ol>
 <p><strong>项目关联：</strong>  </p>
 <ul>
-<li><code>env/</code> 是 <code>lysozyme_dataset</code> 的专用环境，包含 Python 3.10，后续安装 <code>pandas</code> 等依赖。  </li>
+<li><code>env/</code> 是 <code>lysozyme_dataset</code> 的专用环境，包含 Python 3.10 和项目所需的所有依赖。  </li>
 <li>项目内环境确保迁移时所有依赖随行。</li>
 </ul>
 <p><strong>注意事项：</strong>  </p>
@@ -322,11 +342,8 @@
 <li><p>加速下载：  </p>
  <figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main</span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free</span><br><span class="line">conda config --<span class="built_in">set</span> show_channel_urls <span class="built_in">yes</span></span><br></pre></td></tr></tbody></table></figure>
 </li>
-<li><p>验证环境：  </p>
- <figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda info --envs</span><br></pre></td></tr></tbody></table></figure>
-
-<p> 应列出 <code>./env</code>.</p>
-</li>
+<li><p>如果没有 requirements.txt，可以手动安装所需包：</p>
+ <figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pandas numpy scikit-learn</span><br></pre></td></tr></tbody></table></figure></li>
 </ul>
 <h4 id="方案-B：迁移现有全局环境"><a href="#方案-B：迁移现有全局环境" class="headerlink" title="方案 B：迁移现有全局环境"></a>方案 B：迁移现有全局环境</h4><p>若已有全局环境（如 <code>phalp</code>），迁移到 <code>lysozyme_dataset</code>：</p>
 <ol>
