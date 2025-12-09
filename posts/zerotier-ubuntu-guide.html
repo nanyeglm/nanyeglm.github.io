@@ -1,0 +1,544 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程 | 高利明的空间</title><meta name="author" content="高利明"><meta name="copyright" content="高利明"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="详细介绍在 Ubuntu 系统上安装和配置 ZeroTier 的完整教程。包括官方安装、加入网络、替换 planet 文件（私有部署）、常用命令、故障排查等内容，适合需要异地组网或内网穿透的用户。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程">
+<meta property="og:url" content="http://example.com/posts/zerotier-ubuntu-guide.html">
+<meta property="og:site_name" content="高利明的空间">
+<meta property="og:description" content="详细介绍在 Ubuntu 系统上安装和配置 ZeroTier 的完整教程。包括官方安装、加入网络、替换 planet 文件（私有部署）、常用命令、故障排查等内容，适合需要异地组网或内网穿透的用户。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/avatar.webp">
+<meta property="article:published_time" content="2025-12-09T02:00:00.000Z">
+<meta property="article:modified_time" content="2025-12-09T02:00:00.000Z">
+<meta property="article:author" content="高利明">
+<meta property="article:tag" content="Ubuntu">
+<meta property="article:tag" content="ZeroTier">
+<meta property="article:tag" content="VPN">
+<meta property="article:tag" content="虚拟局域网">
+<meta property="article:tag" content="内网穿透">
+<meta property="article:tag" content="P2P">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/avatar.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/posts/zerotier-ubuntu-guide.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//www.clarity.ms"><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="google-site-verification" content="OPIZkiHEFzMB0vxS2E3LmAwL6aARyJHunL5ioiP7Zdg"><meta name="baidu-site-verification" content="codeva-R340xvkTth"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "kq5g68ysoz");</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><link rel="stylesheet" href="/css/transpancy.css"><link rel="stylesheet" href="/css/modify.css"><link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/images/wallhaven-exrqrr_3840x2160-final.webp);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">16</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/main_cover.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">高利明的空间</span></a><a class="nav-page-title" href="/"><span class="site-name">Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-09T02:00:00.000Z" title="发表于 2025-12-09 10:00:00">2025-12-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-12-09T02:00:00.000Z" title="更新于 2025-12-09 10:00:00">2025-12-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/">Linux</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/%E7%BD%91%E7%BB%9C/">网络</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="twikoo_visitors"><i class="fa-solid fa-spinner fa-spin"></i></span></span><span class="post-meta-separator">|</span><span class="post-meta-commentcount"><i class="far fa-comments fa-fw post-meta-icon"></i><span class="post-meta-label">评论数:</span><a href="/posts/zerotier-ubuntu-guide.html#post-comment"><span id="twikoo-count"><i class="fa-solid fa-spinner fa-spin"></i></span></a></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><div class="top-img" style="background-image: url(/images/main_cover.jpg);"></div><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;自该文章上次更新已经过去&quot;,&quot;messageNext&quot;:&quot;天，文章中的某些信息可能已经过时。&quot;,&quot;postUpdate&quot;:&quot;2025-12-09 10:00:00&quot;}" hidden=""></div><blockquote>
+<p>ZeroTier 是一款开源的软件定义网络（SDN）工具，可以在不同网络环境下的设备之间创建安全的虚拟局域网。它采用 P2P 技术，无需公网 IP 即可实现设备互联，非常适合远程办公、异地组网、内网穿透等场景。</p>
+</blockquote>
+<h2 id="教程概述"><a href="#教程概述" class="headerlink" title="教程概述"></a>教程概述</h2><p>本教程将带你完成在 Ubuntu 系统上安装和配置 ZeroTier 的完整过程。内容包括：</p>
+<ul>
+<li><strong>基础介绍</strong>：ZeroTier 工作原理和适用场景</li>
+<li><strong>安装配置</strong>：官方脚本安装与服务管理</li>
+<li><strong>网络管理</strong>：创建网络、加入网络、设备授权</li>
+<li><strong>私有部署</strong>：替换 planet 文件连接私有根服务器</li>
+<li><strong>常用命令</strong>：日常管理命令速查</li>
+<li><strong>故障排查</strong>：常见问题与解决方案</li>
+</ul>
+<hr>
+<h2 id="一、ZeroTier-简介"><a href="#一、ZeroTier-简介" class="headerlink" title="一、ZeroTier 简介"></a>一、ZeroTier 简介</h2><h3 id="1-什么是-ZeroTier"><a href="#1-什么是-ZeroTier" class="headerlink" title="1. 什么是 ZeroTier"></a>1. 什么是 ZeroTier</h3><p>ZeroTier 是一个智能以太网交换机，可以将分布在世界各地的设备组成一个虚拟局域网（VLAN）。其主要特点：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P2P 直连</td>
+<td>设备之间尽可能建立直接连接，降低延迟</td>
+</tr>
+<tr>
+<td>端到端加密</td>
+<td>所有流量使用 256 位加密</td>
+</tr>
+<tr>
+<td>跨平台支持</td>
+<td>支持 Windows、macOS、Linux、iOS、Android 等</td>
+</tr>
+<tr>
+<td>免费额度</td>
+<td>免费版支持最多 25 个设备</td>
+</tr>
+<tr>
+<td>开源</td>
+<td>核心代码开源，支持私有部署</td>
+</tr>
+</tbody></table>
+<h3 id="2-核心概念"><a href="#2-核心概念" class="headerlink" title="2. 核心概念"></a>2. 核心概念</h3><ul>
+<li><strong>Network ID</strong>：16 位十六进制字符串，用于标识一个虚拟网络</li>
+<li><strong>Node ID</strong>：10 位十六进制字符串，每个 ZeroTier 客户端的唯一标识</li>
+<li><strong>Planet</strong>：ZeroTier 官方根服务器，用于节点发现和初始连接</li>
+<li><strong>Moon</strong>：用户自建的中继服务器，可加速特定区域的连接</li>
+<li><strong>Managed IP</strong>：ZeroTier 网络分配给设备的虚拟 IP 地址</li>
+</ul>
+<h3 id="3-适用场景"><a href="#3-适用场景" class="headerlink" title="3. 适用场景"></a>3. 适用场景</h3><ul>
+<li>远程访问家庭或办公室内网设备</li>
+<li>多地服务器组建内网集群</li>
+<li>游戏联机（模拟局域网）</li>
+<li>远程办公访问公司内部资源</li>
+<li>IoT 设备安全互联</li>
+</ul>
+<hr>
+<h2 id="二、环境准备"><a href="#二、环境准备" class="headerlink" title="二、环境准备"></a>二、环境准备</h2><h3 id="1-系统要求"><a href="#1-系统要求" class="headerlink" title="1. 系统要求"></a>1. 系统要求</h3><ul>
+<li><strong>操作系统</strong>：Ubuntu 18.04 / 20.04 / 22.04 / 24.04 LTS</li>
+<li><strong>权限</strong>：需要 root 或 sudo 权限</li>
+<li><strong>网络</strong>：能够访问互联网（安装时需要）</li>
+</ul>
+<h3 id="2-注册-ZeroTier-账号"><a href="#2-注册-ZeroTier-账号" class="headerlink" title="2. 注册 ZeroTier 账号"></a>2. 注册 ZeroTier 账号</h3><p>在安装客户端之前，建议先注册 ZeroTier Central 账号并创建网络：</p>
+<ol>
+<li>访问 <a target="_blank" rel="noopener" href="https://my.zerotier.com/">my.zerotier.com</a></li>
+<li>注册账号（支持 Google、GitHub 等第三方登录）</li>
+<li>登录后点击 <code>Create A Network</code> 创建网络</li>
+<li>记录生成的 <strong>Network ID</strong>（16 位字符串，如 <code>d5e04297a16fa690</code>）</li>
+</ol>
+<blockquote>
+<p><strong>提示</strong>：ZeroTier Central 免费版支持最多 25 个设备，无需信用卡，无试用期限制。</p>
+</blockquote>
+<hr>
+<h2 id="三、安装-ZeroTier"><a href="#三、安装-ZeroTier" class="headerlink" title="三、安装 ZeroTier"></a>三、安装 ZeroTier</h2><h3 id="方法一：官方一键安装脚本（推荐）"><a href="#方法一：官方一键安装脚本（推荐）" class="headerlink" title="方法一：官方一键安装脚本（推荐）"></a>方法一：官方一键安装脚本（推荐）</h3><p>ZeroTier 官方提供了便捷的安装脚本，支持大多数 Linux 发行版：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s https://install.zerotier.com | <span class="built_in">sudo</span> bash</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>命令解释：</strong></p>
+<ul>
+<li><code>curl -s</code>：静默模式下载脚本</li>
+<li><code>| sudo bash</code>：以管理员权限执行脚本</li>
+</ul>
+<p><strong>安装过程说明：</strong></p>
+<p>脚本会自动完成以下操作：</p>
+<ol>
+<li>检测系统类型和版本</li>
+<li>添加 ZeroTier 官方软件源</li>
+<li>导入 GPG 签名密钥</li>
+<li>安装 <code>zerotier-one</code> 软件包</li>
+<li>启动 ZeroTier 服务</li>
+</ol>
+<p><strong>预期输出（部分）：</strong></p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">*** ZeroTier One Quick Install for Unix-like Systems</span><br><span class="line">*** Tested on: Debian, Ubuntu, CentOS, Fedora, RHEL, etc.</span><br><span class="line">*** </span><br><span class="line">*** Installing ZeroTier One for your system...</span><br><span class="line">...</span><br><span class="line">*** Enabling and starting zerotier-one service...</span><br><span class="line">*** Waiting for identity generation...</span><br><span class="line"></span><br><span class="line">*** Success! You are ZeroTier address [ xxxxxxxxxx ].</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后一行的 <code>xxxxxxxxxx</code> 是你的 Node ID（10 位），请记录下来。</p>
+<h3 id="方法二：GPG-验证安装（更安全）"><a href="#方法二：GPG-验证安装（更安全）" class="headerlink" title="方法二：GPG 验证安装（更安全）"></a>方法二：GPG 验证安装（更安全）</h3><p>如果你对安全性有更高要求，可以使用 GPG 验证脚本签名：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -s <span class="string">'https://raw.githubusercontent.com/zerotier/ZeroTierOne/main/doc/contact%40zerotier.com.gpg'</span> | gpg --import &amp;&amp; \</span><br><span class="line"><span class="keyword">if</span> z=$(curl -s <span class="string">'https://install.zerotier.com/'</span> | gpg); <span class="keyword">then</span> <span class="built_in">echo</span> <span class="string">"<span class="variable">$z</span>"</span> | <span class="built_in">sudo</span> bash; <span class="keyword">fi</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>命令解释：</strong></p>
+<ul>
+<li>第一行：导入 ZeroTier 官方 GPG 公钥</li>
+<li>第二行：下载安装脚本并验证签名，验证通过后执行</li>
+</ul>
+<h3 id="方法三：手动添加软件源安装"><a href="#方法三：手动添加软件源安装" class="headerlink" title="方法三：手动添加软件源安装"></a>方法三：手动添加软件源安装</h3><p>如果自动脚本无法使用，可以手动添加软件源：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install -y curl gnupg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加 GPG 密钥</span></span><br><span class="line">curl -fsSL https://download.zerotier.com/debian/zerotier-cli.gpg | <span class="built_in">sudo</span> gpg --dearmor -o /etc/apt/keyrings/zerotier.gpg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加软件源（Ubuntu 24.04 noble）</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"deb [arch=amd64 signed-by=/etc/apt/keyrings/zerotier.gpg] https://download.zerotier.com/debian/noble noble main"</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> /etc/apt/sources.list.d/zerotier.list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 ZeroTier</span></span><br><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install -y zerotier-one</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：请将 <code>noble</code> 替换为你的 Ubuntu 版本代号（如 <code>jammy</code> 对应 22.04，<code>focal</code> 对应 20.04）。</p>
+</blockquote>
+<hr>
+<h2 id="四、验证安装与服务管理"><a href="#四、验证安装与服务管理" class="headerlink" title="四、验证安装与服务管理"></a>四、验证安装与服务管理</h2><h3 id="1-检查服务状态"><a href="#1-检查服务状态" class="headerlink" title="1. 检查服务状态"></a>1. 检查服务状态</h3><p>安装完成后，验证 ZeroTier 服务是否正常运行：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl status zerotier-one</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>预期输出：</strong></p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">● zerotier-one.service - ZeroTier One</span><br><span class="line">     Loaded: loaded (/lib/systemd/system/zerotier-one.service; enabled; preset: enabled)</span><br><span class="line">     Active: active (running) since Mon 2025-12-09 10:00:00 CST; 1min ago</span><br><span class="line">   Main PID: 12345 (zerotier-one)</span><br><span class="line">     ...</span><br></pre></td></tr></tbody></table></figure>
+
+<p>看到 <code>active (running)</code> 表示服务正常运行。</p>
+<h3 id="2-查看节点信息"><a href="#2-查看节点信息" class="headerlink" title="2. 查看节点信息"></a>2. 查看节点信息</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli info</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>预期输出：</strong></p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">200 info xxxxxxxxxx 1.14.0 ONLINE</span><br></pre></td></tr></tbody></table></figure>
+
+<p>输出说明：</p>
+<ul>
+<li><code>200</code>：状态码，表示成功</li>
+<li><code>xxxxxxxxxx</code>：你的 Node ID（10 位）</li>
+<li><code>1.14.0</code>：ZeroTier 版本号</li>
+<li><code>ONLINE</code>：节点在线状态</li>
+</ul>
+<h3 id="3-服务管理命令"><a href="#3-服务管理命令" class="headerlink" title="3. 服务管理命令"></a>3. 服务管理命令</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动服务</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl start zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 停止服务</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl stop zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启服务</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置开机自启</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 禁用开机自启</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">disable</span> zerotier-one</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2 id="五、加入-ZeroTier-网络"><a href="#五、加入-ZeroTier-网络" class="headerlink" title="五、加入 ZeroTier 网络"></a>五、加入 ZeroTier 网络</h2><h3 id="1-加入网络"><a href="#1-加入网络" class="headerlink" title="1. 加入网络"></a>1. 加入网络</h3><p>使用之前记录的 Network ID 加入网络：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli <span class="built_in">join</span> &lt;Network_ID&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>示例：</strong></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli <span class="built_in">join</span> d5e04297a16fa690</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>预期输出：</strong></p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">200 join OK</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="2-授权设备"><a href="#2-授权设备" class="headerlink" title="2. 授权设备"></a>2. 授权设备</h3><p>加入网络后，设备默认处于未授权状态。需要在 ZeroTier Central 控制台授权：</p>
+<ol>
+<li>登录 <a target="_blank" rel="noopener" href="https://my.zerotier.com/">my.zerotier.com</a></li>
+<li>点击进入你的网络</li>
+<li>在 <code>Members</code> 面板找到刚加入的设备（通过 Node ID 识别）</li>
+<li>勾选 <code>Auth?</code> 复选框授权该设备</li>
+<li>可选：在 <code>(short name)</code> 输入框为设备命名</li>
+</ol>
+<h3 id="3-验证网络状态"><a href="#3-验证网络状态" class="headerlink" title="3. 验证网络状态"></a>3. 验证网络状态</h3><p>授权后，查看网络连接状态：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli listnetworks</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>预期输出：</strong></p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">200 listnetworks &lt;nwid&gt; &lt;name&gt; &lt;mac&gt; &lt;status&gt; &lt;type&gt; &lt;dev&gt; &lt;ZT assigned ips&gt;</span><br><span class="line">200 listnetworks d5e04297a16fa690 my_network 5e:xx:xx:xx:xx:xx OK PRIVATE ztxxxxxxxx 10.147.20.1/24</span><br></pre></td></tr></tbody></table></figure>
+
+<p>输出说明：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>d5e04297a16fa690</code></td>
+<td>Network ID</td>
+</tr>
+<tr>
+<td><code>my_network</code></td>
+<td>网络名称</td>
+</tr>
+<tr>
+<td><code>OK</code></td>
+<td>连接状态（OK 表示已授权并连接）</td>
+</tr>
+<tr>
+<td><code>PRIVATE</code></td>
+<td>网络类型（私有网络需要授权）</td>
+</tr>
+<tr>
+<td><code>ztxxxxxxxx</code></td>
+<td>虚拟网卡接口名</td>
+</tr>
+<tr>
+<td><code>10.147.20.1/24</code></td>
+<td>分配的虚拟 IP 地址</td>
+</tr>
+</tbody></table>
+<h3 id="4-测试连接"><a href="#4-测试连接" class="headerlink" title="4. 测试连接"></a>4. 测试连接</h3><p>获取网络中其他设备的 Managed IP，使用 ping 测试连通性：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ping -c 4 10.147.20.2</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>预期输出：</strong></p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PING 10.147.20.2 (10.147.20.2) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.147.20.2: icmp_seq=1 ttl=64 time=15.2 ms</span><br><span class="line">64 bytes from 10.147.20.2: icmp_seq=2 ttl=64 time=12.8 ms</span><br><span class="line">64 bytes from 10.147.20.2: icmp_seq=3 ttl=64 time=11.5 ms</span><br><span class="line">64 bytes from 10.147.20.2: icmp_seq=4 ttl=64 time=10.9 ms</span><br><span class="line"></span><br><span class="line">--- 10.147.20.2 ping statistics ---</span><br><span class="line">4 packets transmitted, 4 received, 0% packet loss, time 3005ms</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2 id="六、替换-Planet-文件（私有部署）"><a href="#六、替换-Planet-文件（私有部署）" class="headerlink" title="六、替换 Planet 文件（私有部署）"></a>六、替换 Planet 文件（私有部署）</h2><p>如果你使用自建的 ZeroTier 根服务器（Planet），需要替换默认的 planet 文件。</p>
+<h3 id="1-停止-ZeroTier-服务"><a href="#1-停止-ZeroTier-服务" class="headerlink" title="1. 停止 ZeroTier 服务"></a>1. 停止 ZeroTier 服务</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl stop zerotier-one</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="2-备份原有-planet-文件"><a href="#2-备份原有-planet-文件" class="headerlink" title="2. 备份原有 planet 文件"></a>2. 备份原有 planet 文件</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> /var/lib/zerotier-one/planet /var/lib/zerotier-one/planet.bak</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="3-替换-planet-文件"><a href="#3-替换-planet-文件" class="headerlink" title="3. 替换 planet 文件"></a>3. 替换 planet 文件</h3><p>将你的自定义 planet 文件复制到 ZeroTier 配置目录：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设你的 planet 文件在当前目录</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> ./planet /var/lib/zerotier-one/planet</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="4-设置正确权限"><a href="#4-设置正确权限" class="headerlink" title="4. 设置正确权限"></a>4. 设置正确权限</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 600 /var/lib/zerotier-one/planet</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> root:root /var/lib/zerotier-one/planet</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>权限说明：</strong></p>
+<ul>
+<li><code>600</code>：仅 root 用户可读写</li>
+<li><code>root:root</code>：文件所有者和组都设为 root</li>
+</ul>
+<h3 id="5-重启-ZeroTier-服务"><a href="#5-重启-ZeroTier-服务" class="headerlink" title="5. 重启 ZeroTier 服务"></a>5. 重启 ZeroTier 服务</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart zerotier-one</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="6-验证-planet-生效"><a href="#6-验证-planet-生效" class="headerlink" title="6. 验证 planet 生效"></a>6. 验证 planet 生效</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli info</span><br></pre></td></tr></tbody></table></figure>
+
+<p>确认状态为 <code>ONLINE</code> 后，加入你的私有网络：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli <span class="built_in">join</span> &lt;私有网络ID&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2 id="七、常用命令速查"><a href="#七、常用命令速查" class="headerlink" title="七、常用命令速查"></a>七、常用命令速查</h2><h3 id="网络管理"><a href="#网络管理" class="headerlink" title="网络管理"></a>网络管理</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看节点信息</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli info</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加入网络</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli <span class="built_in">join</span> &lt;Network_ID&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 离开网络</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli leave &lt;Network_ID&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出已加入的网络</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli listnetworks</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="节点与连接"><a href="#节点与连接" class="headerlink" title="节点与连接"></a>节点与连接</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出已知的节点（peers）</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli listpeers</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看与特定节点的连接状态</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli peer &lt;Node_ID&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="服务管理"><a href="#服务管理" class="headerlink" title="服务管理"></a>服务管理</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看服务状态</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl status zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启服务</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看服务日志</span></span><br><span class="line"><span class="built_in">sudo</span> journalctl -u zerotier-one -f</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="配置文件位置"><a href="#配置文件位置" class="headerlink" title="配置文件位置"></a>配置文件位置</h3><table>
+<thead>
+<tr>
+<th>文件/目录</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/var/lib/zerotier-one/</code></td>
+<td>ZeroTier 数据目录</td>
+</tr>
+<tr>
+<td><code>/var/lib/zerotier-one/identity.public</code></td>
+<td>节点公钥</td>
+</tr>
+<tr>
+<td><code>/var/lib/zerotier-one/identity.secret</code></td>
+<td>节点私钥（重要，请备份）</td>
+</tr>
+<tr>
+<td><code>/var/lib/zerotier-one/planet</code></td>
+<td>根服务器配置</td>
+</tr>
+<tr>
+<td><code>/var/lib/zerotier-one/networks.d/</code></td>
+<td>已加入网络的配置</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、故障排查"><a href="#八、故障排查" class="headerlink" title="八、故障排查"></a>八、故障排查</h2><h3 id="1-服务无法启动"><a href="#1-服务无法启动" class="headerlink" title="1. 服务无法启动"></a>1. 服务无法启动</h3><p><strong>检查步骤：</strong></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看详细错误日志</span></span><br><span class="line"><span class="built_in">sudo</span> journalctl -u zerotier-one --no-pager -n 50</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查端口占用（ZeroTier 默认使用 UDP 9993）</span></span><br><span class="line"><span class="built_in">sudo</span> ss -ulnp | grep 9993</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>常见原因：</strong></p>
+<ul>
+<li>端口 9993 被占用</li>
+<li>配置文件损坏</li>
+<li>权限问题</li>
+</ul>
+<h3 id="2-加入网络后状态显示-ACCESS-DENIED"><a href="#2-加入网络后状态显示-ACCESS-DENIED" class="headerlink" title="2. 加入网络后状态显示 ACCESS_DENIED"></a>2. 加入网络后状态显示 ACCESS_DENIED</h3><p><strong>原因</strong>：设备未在 ZeroTier Central 授权。</p>
+<p><strong>解决方案</strong>：</p>
+<ol>
+<li>登录 <a target="_blank" rel="noopener" href="https://my.zerotier.com/">my.zerotier.com</a></li>
+<li>进入对应网络的管理页面</li>
+<li>在 Members 面板勾选设备的 <code>Auth?</code> 复选框</li>
+</ol>
+<h3 id="3-设备之间无法-ping-通"><a href="#3-设备之间无法-ping-通" class="headerlink" title="3. 设备之间无法 ping 通"></a>3. 设备之间无法 ping 通</h3><p><strong>检查步骤：</strong></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认网络状态为 OK</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli listnetworks</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查虚拟网卡是否存在</span></span><br><span class="line">ip addr show | grep zt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查路由表</span></span><br><span class="line">ip route | grep zt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查防火墙规则</span></span><br><span class="line"><span class="built_in">sudo</span> iptables -L -n | grep -i zt</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>常见原因：</strong></p>
+<ul>
+<li>设备未授权</li>
+<li>防火墙阻止了 ZeroTier 流量</li>
+<li>路由配置问题</li>
+</ul>
+<p><strong>解决方案（放行防火墙）：</strong></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># UFW 防火墙</span></span><br><span class="line"><span class="built_in">sudo</span> ufw allow 9993/udp</span><br><span class="line"></span><br><span class="line"><span class="comment"># iptables</span></span><br><span class="line"><span class="built_in">sudo</span> iptables -A INPUT -p udp --dport 9993 -j ACCEPT</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="4-P2P-直连失败，延迟很高"><a href="#4-P2P-直连失败，延迟很高" class="headerlink" title="4. P2P 直连失败，延迟很高"></a>4. P2P 直连失败，延迟很高</h3><p><strong>检查节点连接类型：</strong></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zerotier-cli listpeers</span><br></pre></td></tr></tbody></table></figure>
+
+<p>输出中 <code>RELAY</code> 表示通过中继连接，<code>DIRECT</code> 表示 P2P 直连。</p>
+<p><strong>常见原因：</strong></p>
+<ul>
+<li>NAT 类型严格（对称 NAT）</li>
+<li>防火墙阻止 UDP 打洞</li>
+<li>网络环境复杂</li>
+</ul>
+<p><strong>优化建议：</strong></p>
+<ol>
+<li>尝试在路由器开放 UDP 9993 端口</li>
+<li>自建 Moon 中继服务器加速连接</li>
+<li>检查是否有 VPN 或代理干扰</li>
+</ol>
+<h3 id="5-替换-planet-后无法连接"><a href="#5-替换-planet-后无法连接" class="headerlink" title="5. 替换 planet 后无法连接"></a>5. 替换 planet 后无法连接</h3><p><strong>检查步骤：</strong></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认 planet 文件权限</span></span><br><span class="line"><span class="built_in">ls</span> -la /var/lib/zerotier-one/planet</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认服务已重启</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看日志</span></span><br><span class="line"><span class="built_in">sudo</span> journalctl -u zerotier-one -f</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>确认 planet 文件格式正确</li>
+<li>确认私有根服务器可访问</li>
+<li>尝试恢复官方 planet：<code>sudo cp /var/lib/zerotier-one/planet.bak /var/lib/zerotier-one/planet</code></li>
+</ul>
+<hr>
+<h2 id="九、卸载-ZeroTier"><a href="#九、卸载-ZeroTier" class="headerlink" title="九、卸载 ZeroTier"></a>九、卸载 ZeroTier</h2><p>如需完全卸载 ZeroTier：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 离开所有网络</span></span><br><span class="line"><span class="built_in">sudo</span> zerotier-cli leave &lt;Network_ID&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 停止服务</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl stop zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载软件包</span></span><br><span class="line"><span class="built_in">sudo</span> apt purge zerotier-one</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除配置和数据（可选，会删除身份密钥）</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">rm</span> -rf /var/lib/zerotier-one</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p><strong>警告</strong>：删除 <code>/var/lib/zerotier-one</code> 目录会丢失节点身份（Node ID），重新安装后将获得新的 Node ID。如需保留身份，请备份 <code>identity.secret</code> 文件。</p>
+</blockquote>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过本教程，你已经完成了 ZeroTier 的完整配置：</p>
+<ul>
+<li><strong>安装部署</strong>：使用官方脚本快速安装 ZeroTier</li>
+<li><strong>网络接入</strong>：创建网络、加入网络并完成设备授权</li>
+<li><strong>私有部署</strong>：替换 planet 文件连接自建根服务器</li>
+<li><strong>运维管理</strong>：掌握常用命令和故障排查方法</li>
+</ul>
+<p>ZeroTier 提供了简单易用的异地组网解决方案，配合 P2P 技术可以实现低延迟的设备互联。对于更复杂的需求，可以考虑自建 Moon 中继服务器或完整的私有化部署。</p>
+<h3 id="参考资源"><a href="#参考资源" class="headerlink" title="参考资源"></a>参考资源</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.zerotier.com/">ZeroTier 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zerotier.com/download/">ZeroTier 下载页面</a></li>
+<li><a target="_blank" rel="noopener" href="https://my.zerotier.com/">ZeroTier Central 控制台</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/zerotier/ZeroTierOne">ZeroTier GitHub 仓库</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">高利明</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/posts/zerotier-ubuntu-guide.html">http://example.com/posts/zerotier-ubuntu-guide.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">高利明的空间</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Ubuntu/">Ubuntu</a><a class="post-meta__tags" href="/tags/ZeroTier/">ZeroTier</a><a class="post-meta__tags" href="/tags/VPN/">VPN</a><a class="post-meta__tags" href="/tags/%E8%99%9A%E6%8B%9F%E5%B1%80%E5%9F%9F%E7%BD%91/">虚拟局域网</a><a class="post-meta__tags" href="/tags/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/">内网穿透</a><a class="post-meta__tags" href="/tags/P2P/">P2P</a></div><div class="post-share"><div class="social-share" data-image="/images/avatar.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/veeam-backup-guide.html" title="Ubuntu 24.04 使用 Veeam Agent 进行系统备份与恢复完整教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Ubuntu 24.04 使用 Veeam Agent 进行系统备份与恢复完整教程</div></div><div class="info-2"><div class="info-item-1">详细介绍在 Ubuntu 24.04 桌面版上安装和配置 Veeam Agent for Linux 的完整教程。包括安装步骤、图形化配置、SMB/NAS备份目标设置、增量备份机制、文件恢复、裸机恢复等内容，适合需要企业级备份方案的用户。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/3f4a9b2e.html" title="配置FRP实现ubuntu远程SSH访问"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-28</div><div class="info-item-2">配置FRP实现ubuntu远程SSH访问</div></div><div class="info-2"><div class="info-item-1">详细介绍如何使用FRP(Fast Reverse Proxy)实现Ubuntu服务器的远程SSH访问,包括FRP的安装配置、服务端与客户端设置等完整教程,帮助用户轻松实现内网服务器的远程访问。</div></div></div></a><a class="pagination-related" href="/posts/ubuntu-22-tsinghua-source.html" title="Ubuntu 22.04桌面版更换清华源教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-15</div><div class="info-item-2">Ubuntu 22.04桌面版更换清华源教程</div></div><div class="info-2"><div class="info-item-1">详细介绍在 Ubuntu 22.04 (Jammy Jellyfish) 上更换软件源为清华镜像的完整教程。基于清华大学官方镜像站指导,使用传统 sources.list 格式配置,确保安全稳定。包含备份、配置、验证等完整步骤。</div></div></div></a><a class="pagination-related" href="/posts/veeam-backup-guide.html" title="Ubuntu 24.04 使用 Veeam Agent 进行系统备份与恢复完整教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-08</div><div class="info-item-2">Ubuntu 24.04 使用 Veeam Agent 进行系统备份与恢复完整教程</div></div><div class="info-2"><div class="info-item-1">详细介绍在 Ubuntu 24.04 桌面版上安装和配置 Veeam Agent for Linux 的完整教程。包括安装步骤、图形化配置、SMB/NAS备份目标设置、增量备份机制、文件恢复、裸机恢复等内容，适合需要企业级备份方案的用户。</div></div></div></a><a class="pagination-related" href="/posts/5272ce5.html" title="WSL中安装并启用中文字体"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-28</div><div class="info-item-2">WSL中安装并启用中文字体</div></div><div class="info-2"><div class="info-item-1">详细介绍在 WSL(Ubuntu) 中安装中文字体的两种方法：一种是直接使用 Windows 系统自带的中文字体，另一种是安装从网络下载的中文字体文件。包含完整的命令说明和步骤解释，帮助 WSL 用户解决中文字体显示问题。</div></div></div></a><a class="pagination-related" href="/posts/433b4ea0.html" title="WSL系统完整备份及迁移教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-02</div><div class="info-item-2">WSL系统完整备份及迁移教程</div></div><div class="info-2"><div class="info-item-1">本文详细介绍了如何对WSL(Ubuntu)系统进行完整备份，以及如何将备份迁移到其他电脑上的方法，包括导出、导入、迁移等完整操作步骤。</div></div></div></a><a class="pagination-related" href="/posts/ubuntu22-docker-install.html" title="Ubuntu 22.04安装Docker完整教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-15</div><div class="info-item-2">Ubuntu 22.04安装Docker完整教程</div></div><div class="info-2"><div class="info-item-1">详细介绍在 Ubuntu 22.04 LTS (Jammy Jellyfish) 上安装 Docker 和 Docker Compose 的完整教程。基于官方文档，针对国内网络环境优化，包含安装步骤、镜像加速配置、验证方法和常见问题解决方案。</div></div></div></a></div></div><hr class="custom-hr"><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info-name">高利明</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">16</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/nanyeglm"><i class="fab fa-github"></i><span>Follow Me on GitHub</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">2024.12.24: 博客上线评论功能，欢迎来聊天呀！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%99%E7%A8%8B%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">教程概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81ZeroTier-%E7%AE%80%E4%BB%8B"><span class="toc-number">2.</span> <span class="toc-text">一、ZeroTier 简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-ZeroTier"><span class="toc-number">2.1.</span> <span class="toc-text">1. 什么是 ZeroTier</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">2.2.</span> <span class="toc-text">2. 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">2.3.</span> <span class="toc-text">3. 适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="toc-number">3.</span> <span class="toc-text">二、环境准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%B3%BB%E7%BB%9F%E8%A6%81%E6%B1%82"><span class="toc-number">3.1.</span> <span class="toc-text">1. 系统要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B3%A8%E5%86%8C-ZeroTier-%E8%B4%A6%E5%8F%B7"><span class="toc-number">3.2.</span> <span class="toc-text">2. 注册 ZeroTier 账号</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85-ZeroTier"><span class="toc-number">4.</span> <span class="toc-text">三、安装 ZeroTier</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E5%AE%98%E6%96%B9%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%AC%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">4.1.</span> <span class="toc-text">方法一：官方一键安装脚本（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9AGPG-%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85%EF%BC%88%E6%9B%B4%E5%AE%89%E5%85%A8%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">方法二：GPG 验证安装（更安全）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%89%EF%BC%9A%E6%89%8B%E5%8A%A8%E6%B7%BB%E5%8A%A0%E8%BD%AF%E4%BB%B6%E6%BA%90%E5%AE%89%E8%A3%85"><span class="toc-number">4.3.</span> <span class="toc-text">方法三：手动添加软件源安装</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9C%8D%E5%8A%A1%E7%AE%A1%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">四、验证安装与服务管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81"><span class="toc-number">5.1.</span> <span class="toc-text">1. 检查服务状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9F%A5%E7%9C%8B%E8%8A%82%E7%82%B9%E4%BF%A1%E6%81%AF"><span class="toc-number">5.2.</span> <span class="toc-text">2. 查看节点信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%9C%8D%E5%8A%A1%E7%AE%A1%E7%90%86%E5%91%BD%E4%BB%A4"><span class="toc-number">5.3.</span> <span class="toc-text">3. 服务管理命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8A%A0%E5%85%A5-ZeroTier-%E7%BD%91%E7%BB%9C"><span class="toc-number">6.</span> <span class="toc-text">五、加入 ZeroTier 网络</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%A0%E5%85%A5%E7%BD%91%E7%BB%9C"><span class="toc-number">6.1.</span> <span class="toc-text">1. 加入网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%8E%88%E6%9D%83%E8%AE%BE%E5%A4%87"><span class="toc-number">6.2.</span> <span class="toc-text">2. 授权设备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%AA%8C%E8%AF%81%E7%BD%91%E7%BB%9C%E7%8A%B6%E6%80%81"><span class="toc-number">6.3.</span> <span class="toc-text">3. 验证网络状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%B5%8B%E8%AF%95%E8%BF%9E%E6%8E%A5"><span class="toc-number">6.4.</span> <span class="toc-text">4. 测试连接</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9B%BF%E6%8D%A2-Planet-%E6%96%87%E4%BB%B6%EF%BC%88%E7%A7%81%E6%9C%89%E9%83%A8%E7%BD%B2%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">六、替换 Planet 文件（私有部署）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%81%9C%E6%AD%A2-ZeroTier-%E6%9C%8D%E5%8A%A1"><span class="toc-number">7.1.</span> <span class="toc-text">1. 停止 ZeroTier 服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A4%87%E4%BB%BD%E5%8E%9F%E6%9C%89-planet-%E6%96%87%E4%BB%B6"><span class="toc-number">7.2.</span> <span class="toc-text">2. 备份原有 planet 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%9B%BF%E6%8D%A2-planet-%E6%96%87%E4%BB%B6"><span class="toc-number">7.3.</span> <span class="toc-text">3. 替换 planet 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%AE%BE%E7%BD%AE%E6%AD%A3%E7%A1%AE%E6%9D%83%E9%99%90"><span class="toc-number">7.4.</span> <span class="toc-text">4. 设置正确权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E9%87%8D%E5%90%AF-ZeroTier-%E6%9C%8D%E5%8A%A1"><span class="toc-number">7.5.</span> <span class="toc-text">5. 重启 ZeroTier 服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E9%AA%8C%E8%AF%81-planet-%E7%94%9F%E6%95%88"><span class="toc-number">7.6.</span> <span class="toc-text">6. 验证 planet 生效</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">七、常用命令速查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E7%AE%A1%E7%90%86"><span class="toc-number">8.1.</span> <span class="toc-text">网络管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8A%82%E7%82%B9%E4%B8%8E%E8%BF%9E%E6%8E%A5"><span class="toc-number">8.2.</span> <span class="toc-text">节点与连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AE%A1%E7%90%86"><span class="toc-number">8.3.</span> <span class="toc-text">服务管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE"><span class="toc-number">8.4.</span> <span class="toc-text">配置文件位置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">9.</span> <span class="toc-text">八、故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9C%8D%E5%8A%A1%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8"><span class="toc-number">9.1.</span> <span class="toc-text">1. 服务无法启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8A%A0%E5%85%A5%E7%BD%91%E7%BB%9C%E5%90%8E%E7%8A%B6%E6%80%81%E6%98%BE%E7%A4%BA-ACCESS-DENIED"><span class="toc-number">9.2.</span> <span class="toc-text">2. 加入网络后状态显示 ACCESS_DENIED</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%AE%BE%E5%A4%87%E4%B9%8B%E9%97%B4%E6%97%A0%E6%B3%95-ping-%E9%80%9A"><span class="toc-number">9.3.</span> <span class="toc-text">3. 设备之间无法 ping 通</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-P2P-%E7%9B%B4%E8%BF%9E%E5%A4%B1%E8%B4%A5%EF%BC%8C%E5%BB%B6%E8%BF%9F%E5%BE%88%E9%AB%98"><span class="toc-number">9.4.</span> <span class="toc-text">4. P2P 直连失败，延迟很高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%9B%BF%E6%8D%A2-planet-%E5%90%8E%E6%97%A0%E6%B3%95%E8%BF%9E%E6%8E%A5"><span class="toc-number">9.5.</span> <span class="toc-text">5. 替换 planet 后无法连接</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%8D%B8%E8%BD%BD-ZeroTier"><span class="toc-number">10.</span> <span class="toc-text">九、卸载 ZeroTier</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%BA%90"><span class="toc-number">11.1.</span> <span class="toc-text">参考资源</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/zerotier-ubuntu-guide.html" title="Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程">Ubuntu 安装配置 ZeroTier 组建虚拟局域网完整教程</a><time datetime="2025-12-09T02:00:00.000Z" title="发表于 2025-12-09 10:00:00">2025-12-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/veeam-backup-guide.html" title="Ubuntu 24.04 使用 Veeam Agent 进行系统备份与恢复完整教程">Ubuntu 24.04 使用 Veeam Agent 进行系统备份与恢复完整教程</a><time datetime="2025-12-08T09:00:00.000Z" title="发表于 2025-12-08 17:00:00">2025-12-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/e5f6g7h8.html" title="在 Debian 13 (Trixie) 上安装 Docker 和 Docker Compose 的教程">在 Debian 13 (Trixie) 上安装 Docker 和 Docker Compose 的教程</a><time datetime="2025-09-19T02:00:00.000Z" title="发表于 2025-09-19 10:00:00">2025-09-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/2a3b4c5d.html" title="终极指南：彻底锁死 Conda base 环境，完美解决 VS Code Remote 终端报错">终极指南：彻底锁死 Conda base 环境，完美解决 VS Code Remote 终端报错</a><time datetime="2025-09-16T06:30:00.000Z" title="发表于 2025-09-16 14:30:00">2025-09-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/a1b2c3d4.html" title="Ubuntu 24.04安装Docker完整教程">Ubuntu 24.04安装Docker完整教程</a><time datetime="2025-07-04T03:00:00.000Z" title="发表于 2025-07-04 11:00:00">2025-07-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">©2023 - 2025 By 高利明</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备2022032772号-1</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"requiredFields":["nick"]}
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.gaoliming.top',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://twikoo.gaoliming.top',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    GLOBAL_CONFIG_SITE.isPost && getCount()
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
